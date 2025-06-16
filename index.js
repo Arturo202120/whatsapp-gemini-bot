@@ -12,7 +12,7 @@ const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// Ruta para verificar Webhook
+// Ruta para verificación de webhook (Meta)
 app.get('/webhook', (req, res) => {
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
@@ -26,7 +26,7 @@ app.get('/webhook', (req, res) => {
   }
 });
 
-// Recibir mensajes entrantes
+// Ruta para recibir mensajes entrantes de WhatsApp
 app.post('/webhook', async (req, res) => {
   try {
     const entry = req.body.entry?.[0];
@@ -36,6 +36,8 @@ app.post('/webhook', async (req, res) => {
     const text = message?.text?.body;
 
     if (text && phoneNumber) {
+      console.log('Mensaje recibido:', text);
+
       const aiReply = await getGeminiReply(text);
       await sendMessage(phoneNumber, aiReply);
     }
@@ -65,10 +67,10 @@ async function sendMessage(to, body) {
   );
 }
 
-// Función para obtener respuesta de Gemini
+// Función para obtener respuesta desde Gemini
 async function getGeminiReply(userInput) {
   const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
     {
       contents: [{ parts: [{ text: userInput }] }],
     }
@@ -80,5 +82,6 @@ async function getGeminiReply(userInput) {
   return text;
 }
 
+// Iniciar el servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Servidor corriendo en puerto', PORT));
